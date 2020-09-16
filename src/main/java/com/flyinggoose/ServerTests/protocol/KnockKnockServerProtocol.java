@@ -1,4 +1,4 @@
-package com.flyinggoose.ServerTests.server;
+package com.flyinggoose.ServerTests.protocol;
 
 /*
  * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
@@ -34,7 +34,7 @@ package com.flyinggoose.ServerTests.server;
 import java.net.*;
 import java.io.*;
 
-public class KnockKnockProtocol {
+public class KnockKnockServerProtocol implements IProtocol {
     private static final int WAITING = 0;
     private static final int SENTKNOCKKNOCK = 1;
     private static final int SENTCLUE = 2;
@@ -52,7 +52,8 @@ public class KnockKnockProtocol {
             "Is there an owl in here?",
             "Is there an echo in here?" };
 
-    public String processInput(String theInput) {
+    @Override
+    public String process(String theInput) {
         String theOutput = null;
 
         if (state == WAITING) {

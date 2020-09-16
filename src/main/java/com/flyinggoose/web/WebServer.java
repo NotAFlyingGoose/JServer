@@ -18,7 +18,7 @@ public class WebServer {
         int port = 9000;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         System.out.println("server started at " + port);
-        server.createContext("/", new StaticFileHandler("/", "C:\\Users\\julia\\Desktop\\GitHub\\JServer\\src\\main\\resources\\", "/"));
+        server.createContext("/", new StaticFileHandler("/", "C:\\Users\\julia\\Desktop\\Server Tests\\src\\main\\resources", "/"));
         server.createContext("/echoHeader", new EchoHeaderHandler());
         server.createContext("/echoGet", new EchoGetHandler());
         server.createContext("/echoPost", new EchoPostHandler());

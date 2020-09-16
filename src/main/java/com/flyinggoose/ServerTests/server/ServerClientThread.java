@@ -1,5 +1,8 @@
 package com.flyinggoose.ServerTests.server;
 
+import com.flyinggoose.ServerTests.protocol.IProtocol;
+import com.flyinggoose.ServerTests.protocol.KnockKnockServerProtocol;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,13 +12,16 @@ import java.net.SocketException;
 
 public class ServerClientThread extends Thread implements Runnable {
     private final Socket client;
-    private final PrintWriter outbox;
-    private final BufferedReader inbox;
+    private final PrintWriter out;
+    private final BufferedReader in;
+    private final ServerProtocolProvider provider;
 
-    public ServerClientThread(Socket client) throws IOException {
+    public ServerClientThread(Socket client, ServerProtocolProvider provider) throws IOException {
+        this.provider = provider;
+
         this.client = client;
-        outbox = new PrintWriter(client.getOutputStream(), true);
-        inbox = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        this.out = new PrintWriter(client.getOutputStream(), true);
+        this.in = new BufferedReader(new InputStreamReader(client.getInputStream()));
     }
 
     @Override
@@ -24,13 +30,14 @@ public class ServerClientThread extends Thread implements Runnable {
             String inputLine, outputLine;
 
             // Initiate conversation with client
-            KnockKnockProtocol kkp = new KnockKnockProtocol();
-            outputLine = kkp.processInput(null);
-            outbox.println(outputLine);
+            IProtocol protocol = this.provider.getProtocolFor(this.client);
+            outputLine = protocol.process(null);
+            this.out.println(outputLine);
 
-            while ((inputLine = inbox.readLine()) != null) {
-                outputLine = kkp.processInput(inputLine);
-                outbox.println(outputLine);
+            while ((inputLine = this.in.readLine()) != null) {
+                outputLine = protocol.process(inputLine);
+                this.out.println(outputLine);
+                System.out.println(inputLine);
                 if (outputLine.equals("Bye."))
                     break;
             }

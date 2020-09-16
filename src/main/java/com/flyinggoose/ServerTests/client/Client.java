@@ -11,7 +11,7 @@ import java.net.UnknownHostException;
 
 public class Client {
     public static void main(String[] args) {
-        connectToServer("127.0.0.1", 4444);
+        connectToServer("localhost", 4444);
     }
 
     public static void connectToServer(String host, int port) {
