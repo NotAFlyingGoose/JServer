@@ -13,5 +13,15 @@
         <maven.compiler.target>1.14</maven.compiler.target>
     </properties>
 
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.sun.net.httpserver/http -->
+        <dependency>
+            <groupId>com.sun.net.httpserver</groupId>
+            <artifactId>http</artifactId>
+            <version>20070405</version>
+        </dependency>
+
+    </dependencies>
+
 
 </project>
