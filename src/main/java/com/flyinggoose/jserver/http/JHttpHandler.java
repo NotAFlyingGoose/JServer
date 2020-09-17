@@ -1,4 +1,4 @@
-package com.flyinggoose.jserver.server.http;
+package com.flyinggoose.jserver.http;
 
 import com.flyinggoose.jserver.server.JServerClientThread;
 

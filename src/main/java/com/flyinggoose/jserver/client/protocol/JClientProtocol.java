@@ -1,18 +1,19 @@
 package com.flyinggoose.jserver.client.protocol;
 
 import com.flyinggoose.jserver.client.JClient;
+import com.flyinggoose.jserver.client.JClientServerThread;
 
 public abstract class JClientProtocol {
     public final int reqs;
-    public final JClient client;
+    public final JClientServerThread serverThread;
 
-    public JClientProtocol(JClient client, int reqs) {
-        this.client = client;
+    public JClientProtocol(JClientServerThread serverThread, int reqs) {
+        this.serverThread = serverThread;
         this.reqs = reqs;
     }
 
-    public JClientProtocol(JClient client) {
-        this.client = client;
+    public JClientProtocol(JClientServerThread serverThread) {
+        this.serverThread = serverThread;
         this.reqs = 1;
     }
 

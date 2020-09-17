@@ -1,8 +1,7 @@
-package com.flyinggoose.jserver.server.http;
+package com.flyinggoose.jserver.http;
 
 import com.flyinggoose.jserver.server.JServer;
 import com.flyinggoose.jserver.server.JServerClientThread;
-import com.flyinggoose.jserver.server.protocol.HttpServerProtocol;
 import com.flyinggoose.jserver.server.protocol.JServerProtocol;
 import com.flyinggoose.jserver.server.protocol.JServerProtocolProvider;
 

@@ -1,10 +1,7 @@
-package com.flyinggoose.jserver.server.protocol;
+package com.flyinggoose.jserver.http;
 
 import com.flyinggoose.jserver.server.JServerClientThread;
-import com.flyinggoose.jserver.server.http.HttpHeader;
-import com.flyinggoose.jserver.server.http.JHttpHandler;
-import com.flyinggoose.jserver.server.http.JHttpMethodType;
-import com.flyinggoose.jserver.server.http.JHttpServer;
+import com.flyinggoose.jserver.server.protocol.JServerProtocol;
 
 public class HttpServerProtocol extends JServerProtocol {
     JHttpServer server;

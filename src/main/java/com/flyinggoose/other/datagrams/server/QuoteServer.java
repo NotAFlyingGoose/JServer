@@ -1,9 +1,0 @@
-package com.flyinggoose.other.datagrams.server;
-
-import java.io.IOException;
-
-public class QuoteServer {
-    public static void main(String[] args) throws IOException {
-        new QuoteServerThread().start();
-    }
-}

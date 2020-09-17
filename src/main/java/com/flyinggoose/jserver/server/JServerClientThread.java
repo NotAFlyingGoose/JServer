@@ -1,5 +1,6 @@
 package com.flyinggoose.jserver.server;
 
+import com.flyinggoose.jserver.NetworkCommunicator;
 import com.flyinggoose.jserver.server.protocol.JServerProtocol;
 import com.flyinggoose.jserver.server.protocol.JServerProtocolProvider;
 import com.flyinggoose.jserver.util.Logger;
@@ -11,7 +12,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
 
-public class JServerClientThread extends Thread implements Runnable {
+public class JServerClientThread extends Thread implements NetworkCommunicator {
     private final Socket client;
     private final PrintWriter out;
     private final BufferedReader in;
@@ -26,6 +27,7 @@ public class JServerClientThread extends Thread implements Runnable {
         this.in = new BufferedReader(new InputStreamReader(client.getInputStream()));
     }
 
+    @Override
     public void send(String data) {
         out.println(data);
     }
@@ -41,16 +43,16 @@ public class JServerClientThread extends Thread implements Runnable {
                 //get data from client
                 StringBuilder sent = new StringBuilder();
                 int reqs = 1;
-                String line = in.readLine();
-                sent.append(line).append("\n");
-                while (line != null && !line.isEmpty() && protocol.goodReqsAmt(reqs) && open) {
+                String line;
+                do {
                     line = in.readLine();
+                    if (line == null) closeConnection();
                     sent.append(line).append("\n");
                     reqs++;
-                }
+                } while (line != null && !line.isEmpty() && protocol.goodReqsAmt(reqs) && open);
 
                 //process data
-                protocol.process(sent.toString().trim());
+                if (open) protocol.process(sent.toString().trim());
             }
         } catch (SocketException e) {
             Logger.log("Client Thread", this.client.getPort() + " was disconnected :(");
@@ -59,6 +61,7 @@ public class JServerClientThread extends Thread implements Runnable {
         }
     }
 
+    @Override
     public void closeConnection() {
         open = false;
         Logger.log("Client Thread", "Server closing connection to client " + this.client.getPort() + ".");

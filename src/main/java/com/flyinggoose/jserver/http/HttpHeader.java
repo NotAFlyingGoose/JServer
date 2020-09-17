@@ -1,4 +1,4 @@
-package com.flyinggoose.jserver.server.http;
+package com.flyinggoose.jserver.http;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class HttpHeader extends HashMap<String, Object> {
+    public HttpHeader() {
+
+    }
+
     public HttpHeader(String input) {
         String[] lines = input.split("\n");
 
@@ -23,5 +27,13 @@ public class HttpHeader extends HashMap<String, Object> {
                 put(key, rawValue);
             }
         }
+    }
+
+    public String toHeaderString() {
+        StringBuilder res = new StringBuilder();
+        for (String key : keySet()) {
+            res.append(key).append(": ").append(get(key)).append("\n");
+        }
+        return res.toString().substring(0, res.length()-1);
     }
 }

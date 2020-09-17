@@ -1,4 +1,4 @@
-package com.flyinggoose.jserver.server.protocol;
+package com.flyinggoose.serverTest;
 
 /*
  * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
@@ -32,12 +32,14 @@ package com.flyinggoose.jserver.server.protocol;
  */
 
 import com.flyinggoose.jserver.server.JServerClientThread;
+import com.flyinggoose.jserver.server.protocol.JServerProtocol;
 
 public class KnockKnockServerProtocol extends JServerProtocol {
     private static final int WAITING = 0;
     private static final int SENTKNOCKKNOCK = 1;
     private static final int SENTCLUE = 2;
     private static final int ANOTHER = 3;
+    private static final int NOMORE = 4;
 
     private static final int NUMJOKES = 5;
 
@@ -53,14 +55,13 @@ public class KnockKnockServerProtocol extends JServerProtocol {
 
     public KnockKnockServerProtocol(JServerClientThread clientThread) {
         super(clientThread);
-        clientThread.send("Hey! Welcome to the Server!");
+        clientThread.send("Hey! Welcome to the Knock Knock joke Server!");
     }
 
     @Override
     public void process(String theInput) {
         String theOutput = null;
 
-        System.out.println(theInput);
         if (state == WAITING) {
             theOutput = "Knock! Knock!";
             state = SENTKNOCKKNOCK;
@@ -85,17 +86,23 @@ public class KnockKnockServerProtocol extends JServerProtocol {
             }
         } else if (state == ANOTHER) {
             if (theInput.equalsIgnoreCase("y")) {
-                theOutput = "Knock! Knock!";
-                if (currentJoke == (NUMJOKES - 1))
-                    currentJoke = 0;
-                else
+                if (currentJoke == (NUMJOKES - 1)) {
+                    theOutput = "I don't have anymore jokes :(";
+                    state = NOMORE;
+                }
+                else {
+                    theOutput = "Knock! Knock!";
                     currentJoke++;
-                state = SENTKNOCKKNOCK;
+                    state = SENTKNOCKKNOCK;
+                }
             } else {
                 theOutput = "Bye.";
                 state = WAITING;
             }
+        } else if (state == NOMORE) {
+            theOutput = "I don't have anymore jokes :(";
         }
+
         clientThread.send(theOutput);
     }
 }

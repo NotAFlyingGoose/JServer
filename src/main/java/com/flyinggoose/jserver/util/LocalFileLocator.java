@@ -1,7 +1,6 @@
 package com.flyinggoose.jserver.util;
 
-import com.flyinggoose.other.http.Book;
-import com.flyinggoose.other.http.RequestHandler;
+import com.flyinggoose.jserver.http.JHttpHandler;
 import de.neuland.jade4j.Jade4J;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -143,26 +142,19 @@ public class LocalFileLocator {
             f = folderToFile(f, "index");
         }
         if (f == null || !f.exists()) {
-            return RequestHandler.createErrorResponse(404, "Not Found");
+            return JHttpHandler.createErrorResponse(404, "Not Found");
         }
         String fileExt = "." + f.getName().split("\\.")[f.getName().split("\\.").length - 1];
 
         String content = getFileContent(f);
         if (fileExt.equals(".jade")) {
             try {
-                List<Book> books = new ArrayList<Book>();
-                books.add(new Book("The Hitchhiker's Guide to the Galaxy", 5.70, true));
-                books.add(new Book("Life, the Universe and Everything", 5.60, false));
-                books.add(new Book("The Restaurant at the End of the Universe", 5.40, true));
-
                 Map<String, Object> model = new HashMap<String, Object>();
-                model.put("books", books);
-                model.put("pageName", "My Bookshelf");
                 content = Jade4J.render(f.getAbsolutePath(), model);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return RequestHandler.createResponse("200 OK", LocalFileLocator.getMimeType(fileExt), content);
+        return JHttpHandler.createResponse("200 OK", LocalFileLocator.getMimeType(fileExt), content);
     }
 }
