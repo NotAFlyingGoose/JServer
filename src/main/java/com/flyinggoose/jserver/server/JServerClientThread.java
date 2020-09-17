@@ -27,6 +27,10 @@ public class JServerClientThread extends Thread implements NetworkCommunicator {
         this.in = new BufferedReader(new InputStreamReader(client.getInputStream()));
     }
 
+    public Socket getClientSocket() {
+        return client;
+    }
+
     @Override
     public void send(String data) {
         out.println(data);

@@ -13,7 +13,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class JClient {
-    final JClientProtocolProvider provider;
+    protected JClientProtocolProvider provider;
 
     public JClient(JClientProtocolProvider provider) {
         this.provider = provider;

@@ -32,8 +32,11 @@ public class HttpHeader extends HashMap<String, Object> {
     public String toHeaderString() {
         StringBuilder res = new StringBuilder();
         for (String key : keySet()) {
-            res.append(key).append(": ").append(get(key)).append("\n");
+            if (get(key) instanceof List) {
+                res.append(key).append(": ").append(get(key).toString().substring(1, get(key).toString().length()-1)).append("\n");
+            } else
+                res.append(key).append(": ").append(get(key)).append("\n");
         }
-        return res.toString().substring(0, res.length()-1);
+        return res.toString();
     }
 }
