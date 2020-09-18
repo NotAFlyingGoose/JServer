@@ -4,12 +4,10 @@ import com.flyinggoose.jserver.http.HttpHeader;
 import com.flyinggoose.jserver.server.JServer;
 import com.flyinggoose.jserver.server.JServerClientThread;
 import com.flyinggoose.jserver.server.protocol.JServerProtocol;
-import com.flyinggoose.jserver.server.protocol.JServerProtocolProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.Socket;
 import java.net.URL;
 import java.util.*;
 
@@ -37,19 +35,17 @@ public class ChattyMainServer extends JServer {
         public void process(String input) {
             HttpHeader in = new HttpHeader(input);
 
-            System.out.println(in.toHeaderString());
             switch (in.get("Title").toString()) {
                 case "gen_room" -> {
                     List<String> inData = (List<String>) in.get("Data");
                     String address = inData.get(0);
                     String name = inData.get(1);
 
-                    Random r = new Random(Integer.parseInt(address.split(":")[2]));
+                    Random r = new Random(Integer.parseInt(address.split(":")[1]));
                     int id;
 
-                    do id = r.nextInt();
+                    do id = Math.abs(r.nextInt());
                     while (rooms.containsKey(id));
-
 
                     rooms.put(id, inData);
 
@@ -69,16 +65,18 @@ public class ChattyMainServer extends JServer {
                         if (isNumber(reqName)) {
                             if (rooms.get(id).get(0).split(":", 2)[1].equals(reqName)) {
                                 List<String> outData = new ArrayList<>();
-                                outData.add(rooms.get(id).get(0));
-                                outData.add(String.valueOf(id));
+                                outData.add(rooms.get(id).get(0)); // room ip address
+                                outData.add(String.valueOf(id)); // room id
+                                outData.add(rooms.get(id).get(1)); // room name
                                 out.put("Data", outData);
                                 break;
                             }
                         } else {
                             if (rooms.get(id).get(1).equals(reqName)) {
                                 List<String> outData = new ArrayList<>();
-                                outData.add(rooms.get(id).get(0));
-                                outData.add(String.valueOf(id));
+                                outData.add(rooms.get(id).get(0)); // room ip address
+                                outData.add(String.valueOf(id)); // room id
+                                outData.add(rooms.get(id).get(1)); // room name
                                 out.put("Data", outData);
                                 break;
                             }

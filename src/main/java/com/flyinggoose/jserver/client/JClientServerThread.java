@@ -18,7 +18,14 @@ public class JClientServerThread extends Thread implements NetworkCommunicator {
     int port;
     PrintWriter out;
     BufferedReader in;
+    Socket serverSocket;
     private boolean open = false;
+    private boolean log = true;
+
+    public JClientServerThread(JClientProtocolProvider provider, String host, int port, boolean log) {
+        this(provider, host, port);
+        this.log = log;
+    }
 
     public JClientServerThread(JClientProtocolProvider provider, String host, int port) {
         this.provider = provider;
@@ -34,21 +41,24 @@ public class JClientServerThread extends Thread implements NetworkCommunicator {
     @Override
     public void closeConnection() {
         open = false;
-        Logger.log("Client", "Client closing connection to host " + this.port + ".");
+        if (log) Logger.log("Client", "Client closing connection to host " + this.port + ".");
+    }
+
+    public Socket getServerSocket() {
+        return serverSocket;
     }
 
     @Override
     public void run() {
         open = true;
-        try (
-                Socket serverSocket = new Socket(host, port);
-        ) {
+        try {
+            serverSocket = new Socket(host, port);
             out = new PrintWriter(serverSocket.getOutputStream(), true);
             in = new BufferedReader(
                     new InputStreamReader(serverSocket.getInputStream()));
 
             while (open) {
-                JClientProtocol protocol = this.provider.getProtocolFor(serverSocket, this);
+                JClientProtocol protocol = this.provider.getProtocolFor(this);
 
                 //get data from server
                 StringBuilder sent = new StringBuilder();
