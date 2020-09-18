@@ -1,4 +1,4 @@
-package com.flyinggoose.serverTest.chatty;
+package com.flyinggoose.serverTest.chatty.main;
 
 import com.flyinggoose.jserver.http.HttpHeader;
 import com.flyinggoose.jserver.server.JServer;
@@ -15,13 +15,15 @@ public class ChattyMainServer extends JServer {
     public static final float VERSION = 1.0f;
     //  -id----  -port&name--
     Map<Integer, List<String>> rooms = new HashMap<>();
+    //  -id----  -name&pass--
+    Map<Integer, List<String>> users = new HashMap<>();
     public ChattyMainServer(int port) {
         super(port, null);
     }
 
     @Override
     public void start() throws IOException {
-        this.provider = (client, clientThread) -> new ChattyMainServerProtocol(clientThread);
+        this.provider = clientThread -> new ChattyMainServerProtocol(clientThread);
         super.start();
     }
 
@@ -56,6 +58,26 @@ public class ChattyMainServer extends JServer {
                     System.out.println("creating room " + id);
                     clientThread.send(out.toHeaderString());
                 }
+                case "gen_user" -> {
+                    List<String> inData = (List<String>) in.get("Data");
+                    String username = inData.get(0);
+                    String password = inData.get(1);
+
+                    Random r = new Random((username + password).hashCode());
+                    int id;
+
+                    do id = Math.abs(r.nextInt());
+                    while (users.containsKey(id));
+
+                    users.put(id, inData);
+
+                    HttpHeader out = new HttpHeader();
+                    out.put("Sender", "Chatty/"+VERSION);
+                    out.put("Title", "gen_user");
+                    out.put("Data", id);
+                    System.out.println("creating user " + id);
+                    clientThread.send(out.toHeaderString());
+                }
                 case "room_info" -> {
                     String reqName = in.get("Data").toString();
                     HttpHeader out = new HttpHeader();
@@ -80,6 +102,26 @@ public class ChattyMainServer extends JServer {
                                 out.put("Data", outData);
                                 break;
                             }
+                        }
+                    }
+                    if (!out.containsKey("Data")) {
+                        out.put("Data", "null");
+                    }
+                    clientThread.send(out.toHeaderString());
+                }
+                case "user_info" -> {
+                    String reqName = in.get("Data").toString();
+                    HttpHeader out = new HttpHeader();
+                    out.put("Sender", "Chatty/"+VERSION);
+                    out.put("Title", "user_info");
+                    for (Integer id : users.keySet()) {
+                        if (users.get(id).get(0).equals(reqName)) {
+                            List<String> outData = new ArrayList<>();
+                            outData.add(users.get(id).get(0)); // user name
+                            outData.add(users.get(id).get(1)); // user pass
+                            outData.add(String.valueOf(id)); // user id
+                            out.put("Data", outData);
+                            break;
                         }
                     }
                     if (!out.containsKey("Data")) {

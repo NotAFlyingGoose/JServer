@@ -1,9 +1,11 @@
-package com.flyinggoose.serverTest.chatty;
+package com.flyinggoose.serverTest.chatty.room;
 
 import com.flyinggoose.jserver.client.JClient;
 import com.flyinggoose.jserver.client.JClientServerThread;
 import com.flyinggoose.jserver.client.protocol.JClientProtocol;
 import com.flyinggoose.jserver.http.HttpHeader;
+import com.flyinggoose.serverTest.chatty.main.ChattyMainServer;
+import com.flyinggoose.serverTest.chatty.client.ChattyClientException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +38,7 @@ public class RoomInfo {
             }
         }
         if (data.get(0).toString().equals("null")) {
-            throw new com.flyinggoose.serverTest.chatty.ChattyClientException("Room does not exist");
+            throw new ChattyClientException("Room does not exist");
         }
         List<String> roomData = (List<String>) data.get(0);
 

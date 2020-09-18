@@ -18,7 +18,6 @@ public class JServerClientThread extends Thread implements NetworkCommunicator {
     private final BufferedReader in;
     private final JServerProtocolProvider provider;
     private boolean open = false;
-    private boolean log = true;
 
     public JServerClientThread(Socket client, JServerProtocolProvider provider) throws IOException {
         this.provider = provider;
@@ -26,11 +25,6 @@ public class JServerClientThread extends Thread implements NetworkCommunicator {
         this.client = client;
         this.out = new PrintWriter(client.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-    }
-
-    public JServerClientThread(Socket client, JServerProtocolProvider provider, boolean log) throws IOException {
-        this(client, provider);
-        this.log = log;
     }
 
     public Socket getClientSocket() {
@@ -47,7 +41,7 @@ public class JServerClientThread extends Thread implements NetworkCommunicator {
         open = true;
         try {
             // create new protocol for this client
-            JServerProtocol protocol = this.provider.getProtocolFor(this.client, this);
+            JServerProtocol protocol = this.provider.getProtocolFor(this);
 
             while (open) {
                 //get data from client
@@ -65,7 +59,7 @@ public class JServerClientThread extends Thread implements NetworkCommunicator {
                 if (open) protocol.process(sent.toString().trim());
             }
         } catch (SocketException e) {
-            if (log) Logger.log("Client Thread", this.client.getPort() + " was disconnected :(");
+            if (JServer.logConnections)  Logger.log("Client Thread", this.client.getPort() + " was disconnected :(");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -74,6 +68,11 @@ public class JServerClientThread extends Thread implements NetworkCommunicator {
     @Override
     public void closeConnection() {
         open = false;
-        if (log) Logger.log("Client Thread", "Server closing connection to client " + this.client.getPort() + ".");
+        if (JServer.logConnections) Logger.log("Client Thread", "Server closing connection to client " + this.client.getPort() + ".");
+    }
+
+    @Override
+    public boolean isOpen() {
+        return open;
     }
 }

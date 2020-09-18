@@ -1,4 +1,4 @@
-package com.flyinggoose.serverTest;
+package com.flyinggoose.serverTest.knockknock;
 
 /*
  * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.

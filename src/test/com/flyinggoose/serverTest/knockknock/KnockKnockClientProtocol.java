@@ -1,4 +1,4 @@
-package com.flyinggoose.serverTest;
+package com.flyinggoose.serverTest.knockknock;
 
 import com.flyinggoose.jserver.client.JClientServerThread;
 import com.flyinggoose.jserver.client.protocol.JClientProtocol;

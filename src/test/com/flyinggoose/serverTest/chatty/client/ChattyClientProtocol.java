@@ -1,8 +1,10 @@
-package com.flyinggoose.serverTest.chatty;
+package com.flyinggoose.serverTest.chatty.client;
 
 import com.flyinggoose.jserver.client.JClientServerThread;
 import com.flyinggoose.jserver.client.protocol.JClientProtocol;
 import com.flyinggoose.jserver.http.HttpHeader;
+import com.flyinggoose.serverTest.chatty.main.ChattyMainServer;
+import com.flyinggoose.serverTest.chatty.room.RoomInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +35,7 @@ public class ChattyClientProtocol extends JClientProtocol {
                 HttpHeader out = new HttpHeader();
                 out.put("Sender", "Chatty/" + ChattyMainServer.VERSION);
                 List<String> outData = new ArrayList<>();
-                outData.add(user.getUsername());
+                outData.add(user.getInfo().getUsername());
                 outData.add(user.getRoomKey(room.getId()));
                 out.put("Title", "client_info");
                 out.put("Data", outData);

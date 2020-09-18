@@ -25,7 +25,7 @@ public class JHttpServer extends JServer {
     public void start() throws IOException {
         this.provider = new JServerProtocolProvider() {
             @Override
-            public JServerProtocol getProtocolFor(Socket client, JServerClientThread clientThread) {
+            public JServerProtocol getProtocolFor(JServerClientThread clientThread) {
                 return new HttpServerProtocol(clientThread, JHttpServer.this);
             }
         };

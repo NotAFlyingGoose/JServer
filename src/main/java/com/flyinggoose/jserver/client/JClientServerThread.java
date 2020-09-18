@@ -20,12 +20,6 @@ public class JClientServerThread extends Thread implements NetworkCommunicator {
     BufferedReader in;
     Socket serverSocket;
     private boolean open = false;
-    private boolean log = true;
-
-    public JClientServerThread(JClientProtocolProvider provider, String host, int port, boolean log) {
-        this(provider, host, port);
-        this.log = log;
-    }
 
     public JClientServerThread(JClientProtocolProvider provider, String host, int port) {
         this.provider = provider;
@@ -41,7 +35,12 @@ public class JClientServerThread extends Thread implements NetworkCommunicator {
     @Override
     public void closeConnection() {
         open = false;
-        if (log) Logger.log("Client", "Client closing connection to host " + this.port + ".");
+        if (JClient.logConnections) Logger.log("Client", "Client closing connection to host " + this.port + ".");
+    }
+
+    @Override
+    public boolean isOpen() {
+        return open;
     }
 
     public Socket getServerSocket() {

@@ -1,6 +1,7 @@
-package com.flyinggoose.serverTest.chatty;
+package com.flyinggoose.serverTest.chatty.client;
 
 import com.flyinggoose.jserver.client.JClient;
+import com.flyinggoose.serverTest.chatty.room.RoomInfo;
 
 public class ChattyClient extends JClient {
     public static final float VERSION = 1.0f;
@@ -15,7 +16,7 @@ public class ChattyClient extends JClient {
 
     public void connectToRoom(String room) {
         RoomInfo info = RoomInfo.getRoomFromName(mainHost, mainPort, room);
-        createConnection(info.getHost(), info.getPort(), false).start();
+        createConnection(info.getHost(), info.getPort()).start();
     }
 
 }

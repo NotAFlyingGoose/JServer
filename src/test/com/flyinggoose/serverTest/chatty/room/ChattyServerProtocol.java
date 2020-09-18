@@ -1,8 +1,10 @@
-package com.flyinggoose.serverTest.chatty;
+package com.flyinggoose.serverTest.chatty.room;
 
 import com.flyinggoose.jserver.http.HttpHeader;
 import com.flyinggoose.jserver.server.JServerClientThread;
 import com.flyinggoose.jserver.server.protocol.JServerProtocol;
+import com.flyinggoose.serverTest.chatty.main.ChattyMainServer;
+import com.flyinggoose.serverTest.chatty.client.ChattyClientException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +17,6 @@ public class ChattyServerProtocol extends JServerProtocol {
         header.put("Sender", "Chatty/" + ChattyMainServer.VERSION);
         header.put("Title", "client_info");
         header.put("RoomID", room.getInfo().getId());
-        System.out.println("sending message to client " + header.toHeaderString());
         clientThread.send(header.toHeaderString());
         this.room = room;
     }
@@ -40,7 +41,6 @@ public class ChattyServerProtocol extends JServerProtocol {
                 out.put("Title", "client_accept");
                 out.put("Data", room.isValidKey(key));
                 out.put("RoomID", room.getInfo().getId());
-                System.out.println("giving " + out.toHeaderString());
                 clientThread.send(out.toHeaderString());
             }
             case "message_post" -> {
@@ -58,7 +58,6 @@ public class ChattyServerProtocol extends JServerProtocol {
                 out.put("Title", "message_post");
                 out.put("Data", room.postMessage(user, content));
                 out.put("RoomID", room.getInfo().getId());
-                System.out.println("giving " + out.toHeaderString());
                 clientThread.send(out.toHeaderString());
             }
             case "message_get" -> {
@@ -77,7 +76,6 @@ public class ChattyServerProtocol extends JServerProtocol {
                 }
                 out.put("Data", data);
                 out.put("RoomID", room.getInfo().getId());
-                System.out.println("giving " + out.toHeaderString());
                 clientThread.send(out.toHeaderString());
             }
         }
