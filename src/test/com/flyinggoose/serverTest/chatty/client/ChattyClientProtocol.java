@@ -24,6 +24,9 @@ public class ChattyClientProtocol extends JClientProtocol {
     public void process(String input) {
         HttpHeader in = new HttpHeader(input);
 
+        if (in.get("Title") == null) {
+            return;
+        }
         switch (in.get("Title").toString()) {
             case "client_info" -> {
                 int inRoom = Integer.parseInt(in.get("RoomID").toString());
@@ -83,11 +86,11 @@ public class ChattyClientProtocol extends JClientProtocol {
                 }
                 Object data = in.get("Data");
                 if (data instanceof List) {
-                    this.user.updateMessages(room, (List<String>) data, serverThread);
+                    new Thread(() -> this.user.updateMessages(room, (List<String>) data, serverThread)).start();
                 } else if (data instanceof String) {
                     List<String> newData = new ArrayList<>();
                     newData.add((String) data);
-                    this.user.updateMessages(room, newData, serverThread);
+                    new Thread(() -> this.user.updateMessages(room, newData, serverThread)).start();
                 }
 
                 // get new messages

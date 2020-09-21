@@ -33,9 +33,9 @@ public class UserInfo {
         this.id = id;
     }
 
-    public static UserInfo getUserFromName(String centralIP, int centralPort, String name) {
+    public static UserInfo getUserFromName(String centralIP, int centralPort, String username, String password) {
         List<Object> data = new ArrayList<>();
-        JClient mainConnection = new JClient((serverThread) -> new UserInfo.GetDataFromMain(serverThread, data, name));
+        JClient mainConnection = new JClient((serverThread) -> new UserInfo.GetDataFromMain(serverThread, data, username, password));
         mainConnection.createConnection(centralIP, centralPort).start();
         while (data.size() == 0) {
             try {
@@ -45,8 +45,9 @@ public class UserInfo {
             }
         }
         if (data.get(0).toString().equals("null")) {
-            throw new ChattyClientException("User does not exist");
+            throw new ChattyClientException("Bad user request");
         }
+
         List<String> roomData = (List<String>) data.get(0);
 
         return new UserInfo(roomData.get(0), roomData.get(1), Integer.parseInt(roomData.get(2)));
@@ -55,14 +56,17 @@ public class UserInfo {
     private static class GetDataFromMain extends JClientProtocol {
         List<Object> data;
 
-        public GetDataFromMain(JClientServerThread serverThread, List<Object> data, String user) {
+        public GetDataFromMain(JClientServerThread serverThread, List<Object> data, String username, String password) {
             super(serverThread, -1);
             this.data = data;
 
             HttpHeader header = new HttpHeader();
             header.put("Sender", "Chatty/" + ChattyMainServer.VERSION);
             header.put("Title", "user_info");
-            header.put("Data", user);
+            List<String> data2 = new ArrayList<>();
+            data2.add(username);
+            data2.add(password);
+            header.put("Data", data2);
             serverThread.send(header.toHeaderString());
         }
 
@@ -71,8 +75,7 @@ public class UserInfo {
             HttpHeader header = new HttpHeader(input);
 
             if (header.get("Title").equals("user_info")) {
-                if (header.get("Data") == null) data.add("null");
-                else data.add(header.get("Data"));
+                data.add(header.get("Data"));
             }
             serverThread.closeConnection();
         }

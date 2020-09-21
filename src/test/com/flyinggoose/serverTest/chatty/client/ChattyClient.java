@@ -1,6 +1,8 @@
 package com.flyinggoose.serverTest.chatty.client;
 
 import com.flyinggoose.jserver.client.JClient;
+import com.flyinggoose.jserver.client.JClientServerThread;
+import com.flyinggoose.jserver.server.JServerClientThread;
 import com.flyinggoose.serverTest.chatty.room.RoomInfo;
 
 public class ChattyClient extends JClient {
@@ -14,9 +16,11 @@ public class ChattyClient extends JClient {
         this.mainPort = mainPort;
     }
 
-    public void connectToRoom(String room) {
+    public JClientServerThread connectToRoom(String room) {
         RoomInfo info = RoomInfo.getRoomFromName(mainHost, mainPort, room);
-        createConnection(info.getHost(), info.getPort()).start();
+        JClientServerThread serverThread = createConnection(info.getHost(), info.getPort());
+        serverThread.start();
+        return serverThread;
     }
 
 }

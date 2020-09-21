@@ -43,6 +43,17 @@ public class ChattyMainServer extends JServer {
                     String address = inData.get(0);
                     String name = inData.get(1);
 
+                    for (int roomId : rooms.keySet()) {
+                        if (rooms.get(roomId).get(1).equals(name)) {
+                            HttpHeader out = new HttpHeader();
+                            out.put("Sender", "Chatty/"+VERSION);
+                            out.put("Title", "gen_room");
+                            out.put("Data", "null");
+                            clientThread.send(out.toHeaderString());
+                            return;
+                        }
+                    }
+
                     Random r = new Random(Integer.parseInt(address.split(":")[1]));
                     int id;
 
@@ -110,12 +121,12 @@ public class ChattyMainServer extends JServer {
                     clientThread.send(out.toHeaderString());
                 }
                 case "user_info" -> {
-                    String reqName = in.get("Data").toString();
+                    List<String> inData = (List<String>) in.get("Data");
                     HttpHeader out = new HttpHeader();
                     out.put("Sender", "Chatty/"+VERSION);
                     out.put("Title", "user_info");
                     for (Integer id : users.keySet()) {
-                        if (users.get(id).get(0).equals(reqName)) {
+                        if (users.get(id).get(0).equals(inData.get(0)) && users.get(id).get(1).equals(inData.get(1))) {
                             List<String> outData = new ArrayList<>();
                             outData.add(users.get(id).get(0)); // user name
                             outData.add(users.get(id).get(1)); // user pass
@@ -127,6 +138,13 @@ public class ChattyMainServer extends JServer {
                     if (!out.containsKey("Data")) {
                         out.put("Data", "null");
                     }
+                    clientThread.send(out.toHeaderString());
+                }
+                default -> {
+                    HttpHeader out = new HttpHeader();
+                    out.put("Sender", "Chatty/"+VERSION);
+                    out.put("Title", "unknown_request");
+                    out.put("Data", "null");
                     clientThread.send(out.toHeaderString());
                 }
             }

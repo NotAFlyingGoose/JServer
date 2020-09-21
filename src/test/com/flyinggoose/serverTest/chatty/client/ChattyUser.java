@@ -8,21 +8,20 @@ import com.flyinggoose.serverTest.chatty.main.ChattyMainServer;
 import com.flyinggoose.serverTest.chatty.room.RoomInfo;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChattyUser {
     static BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-    public final Map<Integer, Boolean> accepted = new HashMap<>();
+    public final Map<Integer, Boolean> accepted = new ConcurrentHashMap<>();
     private final UserInfo info;
-    private final Map<Integer, String> keys = new HashMap<>();
-    public Map<Integer, List<String>> messages = new HashMap<>();
+    private final Map<Integer, String> keys = new ConcurrentHashMap<>();
+    public Map<Integer, List<String>> messages = new ConcurrentHashMap<>();
+    private Map<Integer, String> content = new ConcurrentHashMap<>();
 
     public ChattyUser(String username, String password, boolean exists, String mainHost, int mainPort) {
         if (!exists) {
@@ -37,7 +36,7 @@ public class ChattyUser {
                 }
             }
         }
-        this.info = UserInfo.getUserFromName(mainHost, mainPort, username);
+        this.info = UserInfo.getUserFromName(mainHost, mainPort, username, password);
     }
 
     public UserInfo getInfo() {
@@ -53,40 +52,32 @@ public class ChattyUser {
     }
 
     public void updateMessages(RoomInfo room, List<String> messages, JClientServerThread serverThread) {
-        for(int i = 0; i < 80*350; i++) // Default Height of cmd is 300 and Default width is 80
-            System.out.print("\b"); // Prints a backspace
-        System.out.println(room.getRoomName());
-        System.out.println("============================");
-        System.out.println("==========MESSAGES==========");
-        System.out.println("============================");
-        for (String msg : messages) {
-            String[] msgInfo = msg.replaceAll("(?<!\\%)\\%(?!\\%)2C", ",").split(";", 4);
-            try {
-                System.out.println(msgInfo[1] + " sent at " + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").parse(msgInfo[2]) + " : " + msgInfo[3]);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
         this.messages.put(room.getId(), messages);
 
-        String content = "";
-        try {
-            System.out.print(info.getUsername() + "> ");
-            content = stdIn.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (!content.isEmpty()) {
+        if (content.get(room.getId()) != null && !content.get(room.getId()).isEmpty()) {
             HttpHeader out = new HttpHeader();
             out.put("Sender", "Chatty/" + ChattyMainServer.VERSION);
             out.put("Title", "message_post");
             List<String> data = new ArrayList<>();
             data.add(info.getUsername());
-            data.add(content.replaceAll(",", "%2C"));
+            data.add(content.get(room.getId()).replaceAll(",", "%2C"));
             out.put("Data", data);
             out.put("RoomID", room.getId());
             serverThread.send(out.toHeaderString());
+            content.remove(room.getId());
         }
+    }
+
+    public void queueMessage(int roomId, String content) {
+        this.content.put(roomId, content);
+    }
+
+    public void queueUpdate(int roomId) {
+        queueMessage(roomId, "");
+    }
+
+    public List<String> getMessages(int roomId) {
+        return messages.get(roomId);
     }
 
     public class GetDataFromMain extends JClientProtocol {

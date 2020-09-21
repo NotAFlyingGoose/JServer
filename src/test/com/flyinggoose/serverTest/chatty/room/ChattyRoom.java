@@ -38,6 +38,9 @@ public class ChattyRoom {
                     e.printStackTrace();
                 }
             }
+            if (data.get(0).equals("null")) {
+                throw new ChattyServerException("Room already exists");
+            }
         }
         this.info = RoomInfo.getRoomFromName(mainHost, mainPort, name);
         this.server = new JServer(port, clientThread -> new ChattyServerProtocol(clientThread, this));
@@ -52,24 +55,21 @@ public class ChattyRoom {
         postMessage("Server", "Welcome to the start of the " + info.getRoomName() + " Room");
 
         boolean running = true;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(running) {
-                    try {
-                        System.out.print(name + "> ");
-                        String input = ChattyRoomServerStart.stdIn.readLine();
+        new Thread(() -> {
+            while(running) {
+                try {
+                    System.out.print(name + "> ");
+                    String input = ChattyRoomServerStart.stdIn.readLine();
 
-                        for (ServerCommand command : commands) {
-                            if (command.getName().equals(input.split(" ")[0])) {
-                                List<String> list = new LinkedList<>(Arrays.asList(input.split(" ")));
-                                list.remove(0); // removes the first item
-                                command.execute(list.toArray(new String[list.size()]), ChattyRoom.this);
-                            }
+                    for (ServerCommand command : commands) {
+                        if (command.getName().equals(input.split(" ")[0])) {
+                            List<String> list = new LinkedList<>(Arrays.asList(input.split(" ")));
+                            list.remove(0); // removes the first item
+                            command.execute(list.toArray(new String[list.size()]), ChattyRoom.this);
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }).start();
@@ -87,8 +87,7 @@ public class ChattyRoom {
         for (String key : keys.keySet()) {
             Instant then = keys.get(key).getInstant();
             if (then == null) continue;
-            Instant now = Instant.now();
-            Duration timeElapsed = Duration.between(then, now);
+            Duration timeElapsed = Duration.between(then, Instant.now());
             if (timeElapsed.toMinutes() > keys.get(key).getMinutes()) keys.remove(key);
         }
     }
@@ -151,7 +150,18 @@ public class ChattyRoom {
     }
 
     public int getKeysAmt() {
+        updateKeys();
         return keys.size();
+    }
+
+    public void deleteKey(String key) {
+        updateKeys();
+        this.keys.remove(key);
+    }
+
+    public Map<String, TimeData> getAllKeys() {
+        updateKeys();
+        return keys;
     }
 
     public class GetDataFromMain extends JClientProtocol {
@@ -180,18 +190,17 @@ public class ChattyRoom {
             HttpHeader header = new HttpHeader(input);
 
             if (header.get("Title").equals("gen_room")) {
-                int inRoom = Integer.parseInt(header.get("Data").toString());
-                data.add(inRoom);
+                data.add(header.get("Data").toString());
             }
             serverThread.closeConnection();
         }
     }
 
-    private class TimeData {
+    public static class TimeData {
         Instant now;
         int minutes;
 
-        public TimeData(Instant now, int minutes) {
+        private TimeData(Instant now, int minutes) {
             this.now = now;
             this.minutes = minutes;
         }

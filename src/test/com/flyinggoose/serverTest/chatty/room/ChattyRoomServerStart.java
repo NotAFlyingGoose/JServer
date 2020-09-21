@@ -3,16 +3,25 @@ package com.flyinggoose.serverTest.chatty.room;
 import com.flyinggoose.jserver.client.JClient;
 import com.flyinggoose.jserver.http.HttpHeader;
 import com.flyinggoose.jserver.server.JServer;
+import com.flyinggoose.serverTest.TextPrompt;
 import com.flyinggoose.serverTest.chatty.client.ChattyClientException;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class ChattyRoomServerStart {
     public static List<ServerCommand> roomCommands = new ArrayList<>();
@@ -34,11 +43,9 @@ public class ChattyRoomServerStart {
             public void execute(String[] args, ChattyRoom room) {
                 String msg = room.getMessage(Integer.parseInt(args[0]));
                 String[] msgInfo = msg.replaceAll("(?<!\\%)\\%(?!\\%)2C", ",").split(";", 4);
-                HttpHeader header = new HttpHeader();
-                header.put("Author", msgInfo[1]);
-                header.put("Created", msgInfo[2]);
-                header.put("Content", msgInfo[2]);
-                System.out.println(header.toHeaderString());
+                System.out.println("Author" + msgInfo[1]);
+                System.out.println("Created" + msgInfo[2]);
+                System.out.println("Content" + msgInfo[2]);
             }
         });
         roomCommands.add(new ServerCommand("info") {
@@ -54,20 +61,33 @@ public class ChattyRoomServerStart {
         roomCommands.add(new ServerCommand("key") {
             @Override
             public void execute(String[] args, ChattyRoom room) {
-                if (args.length < 2) {
+                if (args.length == 0) {
                     System.out.println("Usage: \"key create [name] [minutes]\"\n" +
                             "or \"key valid [name]\"\n" +
-                            "or \"key delete [name]\"");
+                            "or \"key delete [name]\"\n" +
+                            "or \"key all\"");
                     return;
                 }
 
+                // execution
                 if (args[0].equals("create")) {
                     if (args.length < 3) {
-                        System.out.println("Usage: \"key create [name] [minutes]\"\n");
+                        System.out.println("Usage: \"key create [name] [minutes]\"\n" +
+                                "or \"key valid [name]\"\n" +
+                                "or \"key delete [name]\"\n" +
+                                "or \"key all\"");
                         return;
                     }
 
                     room.createKey(args[1], Integer.parseInt(args[2]));
+                }
+                else if (args[0].equals("delete")) {
+                    if (room.isValidKey(args[1])) {
+                        room.deleteKey(args[1]);
+                        System.out.println("Key was removed");
+                    } else {
+                        System.out.println("Invalid Key :(");
+                    }
                 }
                 else if (args[0].equals("valid")) {
                     if (room.isValidKey(args[1])) {
@@ -75,6 +95,19 @@ public class ChattyRoomServerStart {
                     } else {
                         System.out.println("Invalid Key :(");
                     }
+                }
+                else if (args[0].equals("all")) {
+                    List<List<String>> rows = new ArrayList<>();
+                    rows.add(Arrays.asList("Name", "Created", "Length", "Left"));
+                    for (String key : room.getAllKeys().keySet()) {
+                        ChattyRoom.TimeData tr = room.getAllKeys().get(key);
+                        DateTimeFormatter formatter =
+                                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+                                        .withLocale(Locale.US)
+                                        .withZone(ZoneId.systemDefault());
+                        rows.add(Arrays.asList(key, formatter.format(tr.getInstant()), tr.getMinutes() + " minutes", Math.abs(Duration.between(tr.getInstant(), Instant.now()).toMinutes() - tr.getMinutes()) + " minutes"));
+                    }
+                    System.out.println(formatAsTable(rows));
                 }
             }
         });
@@ -88,7 +121,7 @@ public class ChattyRoomServerStart {
     static BufferedReader stdIn =
             new BufferedReader(new InputStreamReader(System.in));
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         JClient.logConnections = false;
         JServer.logConnections = false;
         int port;
@@ -110,7 +143,13 @@ public class ChattyRoomServerStart {
             System.out.println(exist.equals("y")?"This room exists":"This room will be created");
             System.out.print("Do you like this information (y/n): ");
         } while (!stdIn.readLine().equals("y"));
-        ChattyRoom room = new ChattyRoom(roomName, port, exist.equals("y"), "localhost", 8080);
+        try {
+            ChattyRoom room = new ChattyRoom(roomName, port, exist.equals("y"), "localhost", 8080);
+        } catch (ChattyServerException s) {
+            System.err.println(s.getMessage());
+            Thread.sleep(100);
+            main(args);
+        }
     }
 
     public static String formatAsTable(List<List<String>> rows)
